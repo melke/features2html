@@ -14,6 +14,7 @@ var commander = require('commander'),
   underscore = require('underscore'),
   underscorestring = require('underscore.string'),
   async = require('async'),
+  moment = require('moment'),
   i18n = require('i18next');
 
 // options
@@ -70,6 +71,7 @@ function create(){
     }
     var docData = new Object();
     docData.cssStyles = cssStyles;
+    docData.creationdate = moment().format('YYYY-MM-DD');
     docData.featuresHtml = featuresHtml;
     var docHtml = docHandlebarTemplate(docData);
 
