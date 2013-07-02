@@ -31,7 +31,7 @@ h1 {
   margin: .3em 0 .1em 0;
 }
 
-h2 {
+h2, h3 {
   margin-top: 2em;
 }
 
@@ -99,6 +99,10 @@ a:not(:hover) {
 
 pre, code, textarea {
   font-family: "Menlo", monospace;
+}
+
+pre {
+    font-size: 13px;
 }
 
 code {

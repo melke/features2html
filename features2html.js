@@ -7,14 +7,14 @@ var LANGUAGE = 'en';
 var DOCTEMPLATE, FEATURETEMPLATE;
 
 // MODULES
-var _commander = require('commander'),
-  _fs = require('fs'),
-  _handlebars = require('handlebars'),
-  _linereader = require('line-reader'),
+var commander = require('commander'),
+  fs = require('fs'),
+  handlebars = require('handlebars'),
+  linereader = require('line-reader'),
   i18n = require('i18next');
 
 // options
-_commander
+commander
   .version('0.1')
   .option('-i, --input-dir [path]', 'read feature files from path (default: examples/features)')
   .option('-t, --templates-dir [path]', 'read the files doc_template.html, feature_template.html and style.css from path (default: default/templates)')
@@ -23,25 +23,24 @@ _commander
 
 
 // commands
-_commander
+commander
   .command('create')
   .description('Create html from feature files')
   .action(createCommand);
 
 // Check if called without command
 if (process.argv.length < 3) {
-  _commander.help();
+  commander.help();
 }
 
 // parse commands
-_commander.parse(process.argv);
+commander.parse(process.argv);
 
 function setup(done) {
-  INPUTDIR = _commander.inputDir || INPUTDIR;
-  TEMPLATESDIR = _commander.templatesDir || TEMPLATESDIR;
-  OUTPUTDIR = _commander.outputDir || OUTPUTDIR;
-  LANGUAGE = _commander.lang || LANGUAGE;
-  //console.log('-i = %s, -t = %s, -o = %s, -l = %s', INPUTDIR, TEMPLATESDIR, OUTPUTDIR, LANGUAGE);
+  INPUTDIR = commander.inputDir || INPUTDIR;
+  TEMPLATESDIR = commander.templatesDir || TEMPLATESDIR;
+  OUTPUTDIR = commander.outputDir || OUTPUTDIR;
+  LANGUAGE = commander.lang || LANGUAGE;
   DOCTEMPLATE = TEMPLATESDIR + '/doc_template.html';
   FEATURETEMPLATE = TEMPLATESDIR + '/feature_template.html';
   i18n.init({ lng: LANGUAGE}, function(t) {
@@ -54,34 +53,33 @@ function createCommand() {
 }
 
 function create(){
-  var docHandlebarTemplate = _handlebars.compile(_fs.readFileSync(DOCTEMPLATE, FILE_ENCODING));
-  var featureHandlebarTemplate = _handlebars.compile(_fs.readFileSync(FEATURETEMPLATE, FILE_ENCODING));
-  var cssStyles = _fs.readFileSync(TEMPLATESDIR + '/style.css', FILE_ENCODING);
+  var docHandlebarTemplate = handlebars.compile(fs.readFileSync(DOCTEMPLATE, FILE_ENCODING));
+  var featureHandlebarTemplate = handlebars.compile(fs.readFileSync(FEATURETEMPLATE, FILE_ENCODING));
+  var cssStyles = fs.readFileSync(TEMPLATESDIR + '/style.css', FILE_ENCODING);
 
-  console.log("lang = %s", i18n.lng());
-  console.log("background = %s", i18n.t("background"));
+  parseFeatures(function(features) {
 
-//  parseFeatures(function(features) {
-//
-//    var featuresHtml = '';
-//    for (var i = 0; i < features.length; i++) {
-//      featuresHtml += featureHandlebarTemplate(features[i]);
-//    }
-//    var docData = new Object();
-//    docData.cssStyles = cssStyles;
-//    docData.featuresHtml = featuresHtml;
-//    var docHtml = docHandlebarTemplate(docData);
-//
-//    _fs.mkdir(OUTPUTDIR,function(e){
-//      if(!e || (e && e.code === 'EEXIST')){
-//        _fs.writeFileSync(OUTPUTDIR + '/features.html', docHtml, FILE_ENCODING);
-//        console.log('Done');
-//      } else {
-//        console.log(e);
-//      }
-//    });
-//
-//  });
+    var featuresHtml = '';
+    if (features) {
+      for (var i = 0; i < features.length; i++) {
+        featuresHtml += featureHandlebarTemplate(features[i]);
+      }
+    }
+    var docData = new Object();
+    docData.cssStyles = cssStyles;
+    docData.featuresHtml = featuresHtml;
+    var docHtml = docHandlebarTemplate(docData);
+
+    fs.mkdir(OUTPUTDIR,function(e){
+      if(!e || (e && e.code === 'EEXIST')){
+        fs.writeFileSync(OUTPUTDIR + '/features.html', docHtml, FILE_ENCODING);
+        console.log('Done');
+      } else {
+        console.log(e);
+      }
+    });
+
+  });
 
 
 }
@@ -89,24 +87,71 @@ function create(){
 function parseFeatures(callback) {
 
   parseFeatureFile(INPUTDIR + '/menyer_och_navigering.feature', function(feature) {
-     // use async
+     callback([feature]);
   });
 }
 
 function parseFeatureFile(featureFilename, callback) {
-  var feature = new Object();
-  feature.name = 'Example feature';
-  feature.background = 'Feature background';
-  feature.scenarios = [ {sidenote: 'Side note 1', content: 'Content 1'}, {sidenote: 'Side note 1', content: 'Content 1'} ];
 
-  _linereader.eachLine(featureFilename, function(line) {
-    if (line.contains(':')) {
+  var feature = new Object();
+  feature.background = '';
+  feature.scenarios = [];
+  var scenario = new Object();
+  scenario.content = '';
+
+  var foundMultirowScenario = false;
+  var foundMultirowBackground = false;
+  linereader.eachLine(featureFilename, function(line) {
+
+    if (i18nStringContains(line, 'feature')) {
+       feature.name = line.replace(i18n.t('feature'), '');
+    }
+
+    if (i18nStringContains(line, 'scenario') && foundMultirowScenario) {
+      // new scenario found. start parsing new scenario
+      feature.scenarios.push(scenario);
+      scenario = new Object();
+      scenario.content = '';
+      foundMultirowScenario = false;
+    }
+
+    if (i18nStringContains(line, 'scenario') || i18nStringContains(line, 'sidenote') || foundMultirowScenario) {
+      foundMultirowScenario = true;
+
+      // we are no longer looking for more background rows, reset flag
+      foundMultirowBackground = false;
+
+      // Handle sidenote
+      if (i18nStringContains(line, 'sidenote')) {
+         scenario.sidenote = line.replace(i18n.t('sidenote'), '');
+      } else {
+        // Handle scenario content
+        if (scenario.content) {
+          scenario.content = scenario.content + '\n' + line;
+        } else {
+          scenario.content = line;
+        }
+      }
 
     }
+
+    if (i18nStringContains(line, 'background') || foundMultirowBackground) {
+       foundMultirowBackground = true;
+       feature.background = feature.background + ' ' + line.replace(i18n.t('background'), '');
+    }
+
+
   }).then(function () {
-      console.log("line-reader done!!");
+      // Add last scenario, if exists
+      if (scenario && scenario.content) {
+        feature.scenarios.push(scenario);
+      }
       callback(feature);
   });
 
+}
+
+function i18nStringContains(orgstring, i18nkey) {
+  return  orgstring.indexOf(i18n.t(i18nkey)) !== -1;
 }
 
