@@ -85,7 +85,7 @@ function create(){
 }
 
 function parseFeatures(callback) {
-
+  // todo async processing of sorted features
   parseFeatureFile(INPUTDIR + '/menyer_och_navigering.feature', function(feature) {
      callback([feature]);
   });
