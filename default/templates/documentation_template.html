@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<title>Thinking with Joins</title>
+<style>
+
+@import url(style.css);
+
+circle {
+  fill: none;
+  fill-opacity: .2;
+  stroke: black;
+  stroke-width: 1.5px;
+}
+
+</style>
+<script src="http://d3js.org/d3.v2.min.js?2.8.1"></script>
+
+<header>
+  <aside>February 5, 2012</aside>
+  <a href="../" rel="author">Mike Bostock</a>
+</header>
+
+<h1>Thinking with Joins</h1>
+
+<p>Say you’re making a basic scatterplot using <a href="http://d3js.org/">D3</a>, and you need to create some <a href="http://www.w3.org/TR/SVG/shapes.html#CircleElement">SVG circle</a> elements to visualize your data. You may be surprised to discover that D3 has no primitive for creating multiple DOM elements. <b><a href="https://www.destroyallsoftware.com/talks/wat">WAT?</a></b>
+
+<p>Sure, there’s the <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-append">append</a> method, which you can use to create a single element:
+
+<aside>Here <code>svg</code> refers to a single-element selection containing an <code class="html">&lt;svg&gt;</code> element created previously (or selected from the current page, say).</aside>
+
+<pre><code>svg.append("circle")
+    .attr("cx", d.x)
+    .attr("cy", d.y)
+    .attr("r", 2.5);</code></pre>
+
+<p>But that’s just a single circle, and you want <i>many</i> circles: one for each data point. Before you bust out a <code>for</code> loop and brute-force it, consider this mystifying sequence from one of D3’s examples:
+
+<aside>Here <code>data</code> is an array of JSON objects with <code>x</code> and <code>y</code> properties, such as: <code>[{"x": 1.0, "y": 1.1}, {"x": 2.0, "y": 2.5}, …]</code>.</aside>
+
+<pre><code>svg.selectAll("circle")
+    .data(data)
+  .enter().append("circle")
+    .attr("cx", function(d) { return d.x; })
+    .attr("cy", function(d) { return d.y; })
+    .attr("r", 2.5);</code></pre>
+
+<p>This code does exactly what you need—it creates a circle element for each data point, using the <code>x</code> and <code>y</code> data properties for positioning. But what’s with the <code>selectAll("circle")</code>? Why do you have to select elements that don’t exist in order to create new ones? WAT.
+
+<h3>En H3 rubrik</h3>
+
+<p>Here’s the deal: instead of telling D3 <i>how to do something</i>, <b>tell D3 <i>what you want</i></b>. In this case, you <i>want</i> the circle elements to correspond to data: you want one circle per datum. Instead of instructing D3 to create circles, then, tell D3 that the selection <code>"circle"</code> should correspond to data—and describe how to get there. This concept is called the <i>data-join</i>:
+
+<aside style="margin-top:6em;">This Venn diagram illustrates the data-join. Data bound to existing elements produce the <i>update</i> (inner) selection. Unbound data produce the <i>enter</i> selection (left), and unbound elements produce the <i>exit</i> selection (right).</aside>
+
+<script>
+
+var svg = d3.select("body").append("svg")
+    .attr("width", 720)
+    .attr("height", 240)
+  .append("g")
+    .attr("transform", "translate(0,128)");
+
+var data = svg.append("g").attr("transform", "translate(300)");
+data.append("circle").style("fill", "#3182bd");
+data.append("text").attr("y", -120).text("Data").style("font-weight", "bold");
+data.append("text").attr("x", -50).text("Enter");
+
+svg.append("text").attr("x", 360).text("Update");
+
+var elements = svg.append("g").attr("transform", "translate(420)");
+elements.append("circle").style("fill", "#e6550d");
+elements.append("text").attr("y", -120).text("Elements").style("font-weight", "bold");
+elements.append("text").attr("x", 50).text("Exit");
+
+svg.selectAll("circle")
+    .attr("r", 110);
+
+svg.selectAll("text")
+    .attr("dy", ".35em")
+    .attr("text-anchor", "middle");
+
+</script>
+
+<p>Thinking with joins reveals the mystery behind the sequence:<ol>
+
+<li><p>The <code>selectAll("circle")</code> returns the empty selection, since the SVG container element (<code>svg</code>) is empty. No magic here.
+
+<li><p>The empty selection is joined to data: <code>data(data)</code>. The <a href="https://github.com/mbostock/d3/wiki/Selections#wiki-data">data</a> method binds data to elements, producing three virtual selections: <i>enter</i>, <i>update</i> and <i>exit</i>. The <i>enter</i> selection contains placeholders for any missing elements. The <i>update</i> selection contains existing elements, bound to data. Any remaining elements end up in the <i>exit</i> selection for removal.
+
+<li><p>Since the selection was empty, all data ends up as placeholder nodes in <code>enter()</code>.
+
+<aside>This is the same <code>append</code> as in the first example, but applied to multiple placeholders; selection methods implicitly iterate over selected elements.</aside>
+
+<li><p>The missing elements are added to the SVG container by <code>append("circle")</code>.
+
+</ol><p>So that’s it. You wanted the selection <code>"circle"</code> to correspond to data, and you described how to create the missing elements.
+
+<p>But why all the trouble? Why not have a primitive to create multiple elements? The beauty of the data-join is that it generalizes. The above code only handles the <i>enter</i> selection. That’s sufficient for static visualizations, but you can extend it to support <a href="http://bost.ocks.org/mike/miserables/">dynamic</a> <a href="http://mbostock.github.com/d3/ex/population.html">visualizations</a> with only minor modifications for <i>update</i> and <i>exit</i>. And that means you can visualize <a href="http://bost.ocks.org/mike/path/">realtime data</a>, allow <a href="http://mbostock.github.com/d3/ex/splom.html">interactive exploration</a>, and <a href="http://mbostock.github.com/d3/talk/20111116/transitions.html">transition smoothly</a> between datasets!
+
+<p>Here’s an example of handling all three states:
+
+<pre><code>var circle = svg.selectAll("circle")
+    .data(data);
+
+circle.enter().append("circle")
+    .attr("r", 2.5);
+
+circle
+    .attr("cx", function(d) { return d.x; })
+    .attr("cy", function(d) { return d.y; });
+
+circle.exit().remove();</code></pre>
+
+<aside>To control how data is assign&shy;ed to elements, you can pro&shy;vide a <a href="../constancy/">key function</a>.</aside>
+
+<p>If we run this code repeatedly, it recomputes the data-join each time. If the new dataset is smaller than the old one, the surplus elements end up in the <i>exit</i> selection and get removed. If the new dataset is larger, the surplus data ends up in the <i>enter</i> selection and new nodes are added. If the new dataset is exactly the same size, then all the elements are simply updated with new positions, and no elements are added or removed.
+
+<p>Thinking with joins also means your code is more <i>declarative</i>: you handle these three states with no branching (<code>if</code>) and no iteration (<code>for</code>), simply by describing how elements should correspond to data. If a given <i>enter</i>, <i>update</i> or <i>exit</i> selection happens to be empty, the corresponding chunk of code is a no-op with minimal overhead.
+
+<p>Joins also let you target operations to specific states, if needed. For example, you can set constant attributes (such as the circle’s radius, defined by the <code>"r"</code> attribute) on enter rather than update. By reselecting elements and minimizing DOM changes, you vastly improve rendering performance! Similarly, you can target animated transitions to specific states. For example, for entering circles to expand-in:
+
+<pre><code>circle.enter().append("circle")
+    .attr("r", 0)
+  .transition()
+    .attr("r", 2.5);</code></pre>
+
+<p>Likewise, to shrink-out:
+
+<pre><code>circle.exit().transition()
+    .attr("r", 0)
+    .remove();</code></pre>
+
+<p>Now you’re thinking with joins!
+
+<p>Comments or questions? <a href="http://news.ycombinator.com/item?id=3581614">Discuss on HN.</a>
+
+<h2>Addendum</h2>
+
+<p>I’ve written a series of examples on the <a href="http://bl.ocks.org/3808218">general update pattern</a> as a followup to this post.
+
+<footer>
+  <aside>February 5, 2012</aside>
+  <a href="../" rel="author">Mike Bostock</a>
+</footer>
+
+<script src="../highlight.min.js"></script>
