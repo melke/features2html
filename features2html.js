@@ -11,6 +11,9 @@ var commander = require('commander'),
   fs = require('fs'),
   handlebars = require('handlebars'),
   linereader = require('line-reader'),
+  underscore = require('underscore'),
+  underscorestring = require('underscore.string'),
+  async = require('async'),
   i18n = require('i18next');
 
 // options
@@ -85,9 +88,18 @@ function create(){
 }
 
 function parseFeatures(callback) {
-  // todo async processing of sorted features
-  parseFeatureFile(INPUTDIR + '/menyer_och_navigering.feature', function(feature) {
-     callback([feature]);
+
+  var allFiles = fs.readdirSync(INPUTDIR);
+  var featureFiles = underscore.filter(allFiles, function(item) {
+    return underscorestring.endsWith(item,'.feature');
+  });
+  var sortedFeatureFiles = featureFiles.sort();
+  var sortedFeaturesFullpath = underscore.map(sortedFeatureFiles, function(filename) {
+     return INPUTDIR + '/' + filename;
+  });
+
+  async.mapSeries(sortedFeaturesFullpath, parseFeatureFile, function(err, results) {
+     callback(results);
   });
 }
 
@@ -137,7 +149,7 @@ function parseFeatureFile(featureFilename, callback) {
 
     if (i18nStringContains(line, 'background') || foundMultirowBackground) {
        foundMultirowBackground = true;
-       feature.background = feature.background + ' ' + line.replace(i18n.t('background'), '');
+       feature.background = feature.background + ' ' + line.replace(i18n.t('background'), '').replace('Som', '</p><p>Som');
     }
 
 
@@ -146,7 +158,7 @@ function parseFeatureFile(featureFilename, callback) {
       if (scenario && scenario.content) {
         feature.scenarios.push(scenario);
       }
-      callback(feature);
+      callback(null, feature);
   });
 
 }
