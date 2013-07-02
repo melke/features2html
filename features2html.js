@@ -119,7 +119,7 @@ function parseFeatureFile(featureFilename, callback) {
        feature.name = line.replace(i18n.t('feature'), '');
     }
 
-    if (i18nStringContains(line, 'scenario') && foundMultirowScenario) {
+    if ((i18nStringContains(line, 'scenario') || i18nStringContains(line, 'sidenote')) && foundMultirowScenario) {
       // new scenario found. start parsing new scenario
       feature.scenarios.push(scenario);
       scenario = new Object();
@@ -149,7 +149,7 @@ function parseFeatureFile(featureFilename, callback) {
 
     if (i18nStringContains(line, 'background') || foundMultirowBackground) {
        foundMultirowBackground = true;
-       feature.background = feature.background + ' ' + line.replace(i18n.t('background'), '').replace('Som', '</p><p>Som');
+       feature.background = feature.background + ' ' + line.replace(i18n.t('background'), '').replace('Som', '<br/>Som');
     }
 
 

@@ -175,3 +175,7 @@ blockquote:before {
 blockquote:after {
   position: absolute;
 }
+
+.user-story {
+    margin-top: -30px;
+}
