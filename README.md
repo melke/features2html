@@ -50,7 +50,7 @@ What you normally want to do is:
 * Copy the three files in `default/templates` (two template files and one css file) to another folder anywhere on your computer.
 * Modify the templates and styles according to your demands. If you are happy with the demo design, all you have
 to do is modify the Lorem Ipsum intro text in the template file doc_template.html.
-* Use switches to point to your feature file directory
+* Use switches to point to your folders for templates and features.
 
 Example:
 
@@ -73,7 +73,7 @@ will be rendered to the right of the scenario (see example features in `examples
 ##Feedback and Contribution
 
 All feedback and contribution is very appreciated. Please send pull requests or just send an email to [mats@melke.nu](mailto:mats@melke.nu).
-Maybe you can send a pull request with the Cucumber keywords for your language? See example for english [locales/en/translation.json](locales/en/translation.json)
+Maybe you can send a pull request with the Cucumber keywords for your language? See example for english in [locales/en/translation.json](locales/en/translation.json)
 
 ---
 
