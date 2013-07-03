@@ -22,7 +22,7 @@ You can focus on editing the actual feature files and let features2html make the
 
 ###Demo usage
 
-To get the feel of it, run the script without any options. This will create sample HTML file in the subfolder `output_features2html`,
+To get the feel of it, run the script without any options. This will create a sample HTML file in the subfolder `output_features2html`,
 from the example feature sources in `examples/features`, using the templates and css styles in `default/templates`:
 
 ```
