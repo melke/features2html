@@ -2,8 +2,9 @@
 var FILE_ENCODING = 'utf-8';
 var INPUTDIR = 'examples/features';
 var TEMPLATESDIR = 'default/templates';
-var OUTPUTDIR = 'output';
+var OUTPUTFILE = null;
 var LANGUAGE = 'en';
+var BREAKBEFOREWORD = null;
 var DOCTEMPLATE, FEATURETEMPLATE;
 
 // MODULES
@@ -22,7 +23,8 @@ commander
   .version('0.1')
   .option('-i, --input-dir [path]', 'read feature files from path (default: examples/features)')
   .option('-t, --templates-dir [path]', 'read the files doc_template.html, feature_template.html and style.css from path (default: default/templates)')
-  .option('-o, --output-dir [path]', 'send output to folder path (default: output)')
+  .option('-o, --output-file [path]', 'send output to file path (default: output_features2html/feature_YYYYMMDD_HHmm.html)')
+  .option('-b, --break-before-word [string]', 'create a line break before every occurrance of this word in the background (default: null)')
   .option('-l, --lang [en|sv]', 'language used in feature files (default: en)');
 
 
@@ -43,8 +45,9 @@ commander.parse(process.argv);
 function setup(done) {
   INPUTDIR = commander.inputDir || INPUTDIR;
   TEMPLATESDIR = commander.templatesDir || TEMPLATESDIR;
-  OUTPUTDIR = commander.outputDir || OUTPUTDIR;
+  OUTPUTFILE = commander.outputFile || OUTPUTFILE;
   LANGUAGE = commander.lang || LANGUAGE;
+  BREAKBEFOREWORD = commander.breakBeforeWord || BREAKBEFOREWORD;
   DOCTEMPLATE = TEMPLATESDIR + '/doc_template.html';
   FEATURETEMPLATE = TEMPLATESDIR + '/feature_template.html';
   i18n.init({ lng: LANGUAGE}, function(t) {
@@ -75,17 +78,28 @@ function create(){
     docData.featuresHtml = featuresHtml;
     var docHtml = docHandlebarTemplate(docData);
 
-    fs.mkdir(OUTPUTDIR,function(e){
-      if(!e || (e && e.code === 'EEXIST')){
-        fs.writeFileSync(OUTPUTDIR + '/features.html', docHtml, FILE_ENCODING);
-        console.log('Done');
-      } else {
-        console.log(e);
-      }
-    });
+    if (OUTPUTFILE) {
+      writeOutput(docHtml, OUTPUTFILE);
+    } else {
+      // write to default output dir. Create first if necessary
+      fs.mkdir('output_features2html',function(e){
+        if(!e || (e && e.code === 'EEXIST')){
+          var outputFilepath = 'output_features2html/features_' + moment().format('YYYYMMDD_HHmm') + '.html';
+          writeOutput(docHtml, outputFilepath);
+        } else {
+          console.log(e);
+        }
+      });
+
+    }
+
 
   });
+}
 
+function writeOutput(html, outputfile) {
+  fs.writeFileSync(outputfile, html, FILE_ENCODING);
+  console.log('DONE! HTML was written to %s', outputfile);
 
 }
 
@@ -121,7 +135,7 @@ function parseFeatureFile(featureFilename, callback) {
        feature.name = line.replace(i18n.t('feature'), '');
     }
 
-    if ((i18nStringContains(line, 'scenario') || i18nStringContains(line, 'sidenote')) && foundMultirowScenario) {
+    if (lineIndicatesThatANewScenarioBegins(line) && foundMultirowScenario) {
       // new scenario found. start parsing new scenario
       feature.scenarios.push(scenario);
       scenario = new Object();
@@ -129,7 +143,8 @@ function parseFeatureFile(featureFilename, callback) {
       foundMultirowScenario = false;
     }
 
-    if (i18nStringContains(line, 'scenario') || i18nStringContains(line, 'sidenote') || foundMultirowScenario) {
+    if (lineIndicatesThatANewScenarioBegins(line) || foundMultirowScenario) {
+      // We are parsing a scenario. It may be a new scenario or a row within a scenario
       foundMultirowScenario = true;
 
       // we are no longer looking for more background rows, reset flag
@@ -151,7 +166,8 @@ function parseFeatureFile(featureFilename, callback) {
 
     if (i18nStringContains(line, 'background') || foundMultirowBackground) {
        foundMultirowBackground = true;
-       feature.background = feature.background + ' ' + line.replace(i18n.t('background'), '').replace('Som', '<br/>Som');
+       var fixedline = BREAKBEFOREWORD ? line.replace(BREAKBEFOREWORD, '</p><p class="p-after-p">' + BREAKBEFOREWORD) : line;
+       feature.background = feature.background + ' ' + fixedline.replace(i18n.t('background'), '');
     }
 
 
@@ -163,6 +179,10 @@ function parseFeatureFile(featureFilename, callback) {
       callback(null, feature);
   });
 
+}
+
+function lineIndicatesThatANewScenarioBegins(line) {
+  return i18nStringContains(line, 'scenario') || i18nStringContains(line, 'scenario_outline') || i18nStringContains(line, 'sidenote');
 }
 
 function i18nStringContains(orgstring, i18nkey) {
