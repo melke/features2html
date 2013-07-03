@@ -1,12 +1,12 @@
 ##What is features2html?
 
-features2html is a simple script that *creates HTML based documentation from Cucumber features*. The resulting layout
+features2html is a simple script that **creates HTML based documentation from Cucumber features**. The resulting layout
 is also suitable for printing as PDF from your favorite web browser.
 
-Note that the documentation is *generated from the source Cucumber feature files, and NOT from the test results* (there
+Note that the documentation is **generated from the source Cucumber feature files, and NOT from the test results** (there
 are plenty of other tools that can do that).
 
-Use features2html when you want to *create a nice looking requirements specification*, that you can email to your customer.
+Use features2html when you want to **create a nice looking requirements specification**, that you can email to your customer.
 You can focus on editing the actual feature files and let features2html make the features presentable to your customers.
 
 ---
