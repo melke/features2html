@@ -2,6 +2,8 @@
 var FILE_ENCODING = 'utf-8';
 var INPUTDIR = 'examples/features';
 var TEMPLATESDIR = 'default/templates';
+var PRODUCTNAME = 'My Product Name';
+var AUTHOR = 'John Doe';
 var OUTPUTFILE = null;
 var LANGUAGE = 'en';
 var BREAKBEFOREWORD = null;
@@ -24,6 +26,8 @@ commander
   .option('-i, --input-dir [path]', 'read feature files from path (default: examples/features)')
   .option('-t, --templates-dir [path]', 'read the files doc_template.html, feature_template.html and style.css from path (default: default/templates)')
   .option('-o, --output-file [path]', 'send output to file path (default: output_features2html/feature_YYYYMMDD_HHmm.html)')
+  .option('-p, --product-name [string]', 'The name of your product used in headline and header (default: My Product Name)')
+  .option('-a, --author [string]', 'The author name used in header (default: John Doe)')
   .option('-b, --break-before-word [string]', 'create a line break before every occurrance of this word in the background (default: null)')
   .option('-l, --lang [en|sv]', 'language used in feature files (default: en)');
 
@@ -47,6 +51,8 @@ function setup(done) {
   TEMPLATESDIR = commander.templatesDir || TEMPLATESDIR;
   OUTPUTFILE = commander.outputFile || OUTPUTFILE;
   LANGUAGE = commander.lang || LANGUAGE;
+  AUTHOR = commander.author || AUTHOR;
+  PRODUCTNAME = commander.productName || PRODUCTNAME;
   BREAKBEFOREWORD = commander.breakBeforeWord || BREAKBEFOREWORD;
   DOCTEMPLATE = TEMPLATESDIR + '/doc_template.html';
   FEATURETEMPLATE = TEMPLATESDIR + '/feature_template.html';
@@ -74,7 +80,9 @@ function create(){
     }
     var docData = new Object();
     docData.cssStyles = cssStyles;
-    docData.creationdate = moment().format('YYYY-MM-DD');
+    docData.creationdate = moment().format('LL');
+    docData.author = AUTHOR;
+    docData.productname = PRODUCTNAME;
     docData.featuresHtml = featuresHtml;
     var docHtml = docHandlebarTemplate(docData);
 
