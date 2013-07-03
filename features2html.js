@@ -128,12 +128,10 @@ function parseFeatureFile(featureFilename, callback) {
   scenario.content = '';
 
   var foundMultirowScenario = false;
-  var foundMultirowBackground = false;
-  linereader.eachLine(featureFilename, function(line) {
+  var featureLineWasFound = false;
+  var scenariosStarted = false;
 
-    if (i18nStringContains(line, 'feature')) {
-       feature.name = line.replace(i18n.t('feature'), '');
-    }
+  linereader.eachLine(featureFilename, function(line) {
 
     if (lineIndicatesThatANewScenarioBegins(line) && foundMultirowScenario) {
       // new scenario found. start parsing new scenario
@@ -141,14 +139,13 @@ function parseFeatureFile(featureFilename, callback) {
       scenario = new Object();
       scenario.content = '';
       foundMultirowScenario = false;
+      scenariosStarted = true;
     }
 
     if (lineIndicatesThatANewScenarioBegins(line) || foundMultirowScenario) {
       // We are parsing a scenario. It may be a new scenario or a row within a scenario
       foundMultirowScenario = true;
-
-      // we are no longer looking for more background rows, reset flag
-      foundMultirowBackground = false;
+      scenariosStarted = true;
 
       // Handle sidenote
       if (i18nStringContains(line, 'sidenote')) {
@@ -164,12 +161,16 @@ function parseFeatureFile(featureFilename, callback) {
 
     }
 
-    if (i18nStringContains(line, 'background') || foundMultirowBackground) {
-       foundMultirowBackground = true;
+    if (!i18nStringContains(line, 'feature') && !scenariosStarted && featureLineWasFound) {
+       // Everything between feature and first scenario goes into feature.background, except background keyword
        var fixedline = BREAKBEFOREWORD ? line.replace(BREAKBEFOREWORD, '</p><p class="p-after-p">' + BREAKBEFOREWORD) : line;
        feature.background = feature.background + ' ' + fixedline.replace(i18n.t('background'), '');
     }
 
+    if (i18nStringContains(line, 'feature')) {
+      feature.name = line.replace(i18n.t('feature'), '');
+      featureLineWasFound = true;
+    }
 
   }).then(function () {
       // Add last scenario, if exists
