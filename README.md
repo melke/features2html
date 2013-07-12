@@ -99,3 +99,5 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 ---
+
+[![githalytics.com alpha](https://cruel-carlota.pagodabox.com/b256c1be9c2280083d034b0fd553204c "githalytics.com")](http://githalytics.com/melke/features2html)
