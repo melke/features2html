@@ -55,7 +55,7 @@ to do is modify the Lorem Ipsum intro text in the template file doc_template.htm
 Example:
 
 ```
-node features2html.js -i path-to-your-feature-file-folder -t path-to-your-modified-templates-folder -a "Your Name" -p "Your Product Name"
+node features2html.js -i path-to-your-feature-file-folder -t path-to-your-modified-templates-folder -a "Your Name" -p "Your Product Name" create
 ```
 
 ---
