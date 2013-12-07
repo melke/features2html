@@ -4,6 +4,12 @@ Feature: Death star
   As Darth Vader
   I want a death star with unlimited blast power
 
+  Background:
+    Given   There is an Evil Empire
+    And     this empire is ruled by the ruthless leader Darth Vader
+    And     there are annoying rebels
+    And     Darth pretty much wants to blow these rebels up
+
   Scenario: Upgrade death star
     Given   there is temporary piece
     When    close to mineral planet

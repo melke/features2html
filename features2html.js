@@ -18,6 +18,7 @@ var commander = require('commander'),
   underscorestring = require('underscore.string'),
   async = require('async'),
   moment = require('moment'),
+  path = require('path'),
   i18n = require('i18next');
 
 // options
@@ -56,7 +57,7 @@ function setup(done) {
   BREAKBEFOREWORD = commander.breakBeforeWord || BREAKBEFOREWORD;
   DOCTEMPLATE = TEMPLATESDIR + '/doc_template.html';
   FEATURETEMPLATE = TEMPLATESDIR + '/feature_template.html';
-  i18n.init({ lng: LANGUAGE}, function(t) {
+  i18n.init({ lng: LANGUAGE, resGetPath: path.dirname(require.main.filename) + '/locales/__lng__/__ns__.json'}, function(t) {
     done();
   });
 }
@@ -191,7 +192,7 @@ function parseFeatureFile(featureFilename, callback) {
 }
 
 function lineIndicatesThatANewScenarioBegins(line) {
-  return i18nStringContains(line, 'scenario') || i18nStringContains(line, 'scenario_outline') || i18nStringContains(line, 'sidenote');
+  return i18nStringContains(line, 'scenario') || i18nStringContains(line, 'scenario_outline') || i18nStringContains(line, 'sidenote') || i18nStringContains(line, 'background');
 }
 
 function i18nStringContains(orgstring, i18nkey) {
