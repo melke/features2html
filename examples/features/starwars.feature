@@ -1,5 +1,4 @@
 Feature: Death star
-
   In order to destroy all enemies,
   As Darth Vader
   I want a death star with unlimited blast power

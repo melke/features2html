@@ -1,5 +1,5 @@
 Feature: Ninja, fight or flight
-  In order to increase the ninja survival rate,
+  In order to increase the <b>ninja</b> survival rate,
   As a ninja commander
   I want my ninjas to decide whether to take on an
   opponent based on their skill levels

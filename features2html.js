@@ -173,6 +173,7 @@ function parseFeatureFile(featureFilename, callback) {
     if (!i18nStringContains(line, 'feature') && !scenariosStarted && featureLineWasFound) {
        // Everything between feature and first scenario goes into feature.background, except background keyword
        var fixedline = BREAKBEFOREWORD ? line.replace(BREAKBEFOREWORD, '</p><p class="p-after-p">' + BREAKBEFOREWORD) : line;
+       fixedline = fixedline + '<br/>';
        feature.background = feature.background + ' ' + fixedline.replace(i18n.t('background'), '');
     }
 
