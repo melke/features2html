@@ -1,4 +1,4 @@
-##What is features2html?
+## What is features2html?
 
 features2html is a simple script that **creates HTML based documentation from Cucumber features**. The resulting layout
 is also suitable for printing as PDF from your favorite web browser.
@@ -11,16 +11,16 @@ You can focus on editing the actual feature files and let features2html make the
 
 ---
 
-##Installation
+## Installation
 
 * Make sure you have node.js installed on the computer where you intend to run the script.
 * Clone or [download](https://github.com/melke/features2html/archive/master.zip) the code.
 
 ---
 
-##Usage
+## Usage
 
-###Demo usage
+### Demo usage
 
 To get the feel of it, run the script without any options. This will create a sample HTML file in the subfolder `output_features2html`,
 from the example feature sources in `examples/features`, using the templates and css styles in `default/templates`:
@@ -29,7 +29,7 @@ from the example feature sources in `examples/features`, using the templates and
 node features2html.js create
 ```
 
-###Real world usage
+### Real world usage
 
 Have a look at the switches available:
 
@@ -60,7 +60,7 @@ node features2html.js -i path-to-your-feature-file-folder -t path-to-your-modifi
 
 ---
 
-##Things to note
+## Things to note
 
 * All feature files in the input folder will be processed in alphabetical order. If you want specific ordering of your features in the
 output, I suggest that you rename your feature files with number prefixes, like 100_featurename.feature 110_featurename.feature etc.
@@ -70,14 +70,14 @@ will be rendered to the right of the scenario (see example features in `examples
 
 ---
 
-##Feedback and Contribution
+## Feedback and Contribution
 
 All feedback and contribution is very appreciated. Please send pull requests or just send an email to [mats@melke.nu](mailto:mats@melke.nu).
 Maybe you can send a pull request with the Cucumber keywords for your language? See example for english in [locales/en/translation.json](locales/en/translation.json)
 
 ---
 
-##Licensing
+## Licensing
 
 feature2html is licensed under MIT License
 Permission is hereby granted, free of charge, to any person obtaining a copy
